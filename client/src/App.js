@@ -1,62 +1,88 @@
 import React, { useEffect, useState } from "react";
 
-import { Route, Switch, Redirect } from "react-router-dom";
-import MovieList from './components/MovieList';
-import Movie from './components/Movie';
+import { Route, Switch, Redirect, useHistory } from "react-router-dom";
+import MovieList from "./components/MovieList";
+import Movie from "./components/Movie";
 
-import MovieHeader from './components/MovieHeader';
+import MovieHeader from "./components/MovieHeader";
 
-import EditMovieForm from './components/EditMovieForm';
-import FavoriteMovieList from './components/FavoriteMovieList';
-
-import axios from 'axios';
+import EditMovieForm from "./components/EditMovieForm";
+import FavoriteMovieList from "./components/FavoriteMovieList";
+import AddMovieForm from "./components/AddMovieForm";
+import axios from "axios";
 
 const App = (props) => {
   const [movies, setMovies] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const { push } = useHistory();
 
-  useEffect(()=>{
-    axios.get('http://localhost:5000/api/movies')
-      .then(res => {
+
+const getMovies = () => {
+  axios
+      .get("http://localhost:5000/api/movies")
+      .then((res) => {
         setMovies(res.data);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
+}
+
+  useEffect(() => {
+    getMovies()
   }, []);
 
-  const deleteMovie = (id)=> {
-  }
+  const deleteMovie = (id) => {
+    axios
+        .delete(`http://localhost:5000/api/movies/${id}`)
+        .then(res => {
+          console.log(res.data);
+          
+          getMovies()
+          push('/movies');
+        })
+        .catch(err => console.log(err));
+        
+  };
 
-  const addToFavorites = (movie) => {
-    
-  }
+  const addToFavorites = (movie) => {};
 
   return (
     <div>
       <nav className="navbar navbar-dark bg-dark">
-        <span className="navbar-brand" ><img width="40px" alt="" src="./Lambda-Logo-Red.png"/> HTTP / CRUD Module Project</span>
+        <span className="navbar-brand">
+          <img width="40px" alt="" src="./Lambda-Logo-Red.png" /> HTTP / CRUD
+          Module Project
+        </span>
       </nav>
 
       <div className="container">
-        <MovieHeader/>
+        <MovieHeader />
         <div className="row ">
-          <FavoriteMovieList favoriteMovies={favoriteMovies}/>
-        
+          <FavoriteMovieList favoriteMovies={favoriteMovies} />
+          {/*
+        First, we need to be able to navigate to the edit movie component. In App.js, 
+        add in the `<EditMovieForm> `component to the supplied edit route.
+        */}
           <Switch>
             <Route path="/movies/edit/:id">
+              <EditMovieForm setMovies={setMovies} />
+            </Route>
+
+            <Route path="/movies/add/">
+              <AddMovieForm setMovies={setMovies} />
             </Route>
 
             <Route path="/movies/:id">
-              <Movie/>
+              <Movie deleteMovie={deleteMovie} />
             </Route>
 
             <Route path="/movies">
-              <MovieList movies={movies}/>
+              <MovieList movies={movies} />
             </Route>
 
             <Route path="/">
-              <Redirect to="/movies"/>
+              <Redirect to="/movies" />
             </Route>
           </Switch>
         </div>
@@ -65,6 +91,4 @@ const App = (props) => {
   );
 };
 
-
 export default App;
-
